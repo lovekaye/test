@@ -44,13 +44,13 @@ void dump(){
 	cout << endl;
 }
 
-bool valid(int u, int v){		
+bool valid(int u, int v){
 	if (task[0][v] == 1) return true;    // 진입차수 1개 true	
 	else {    // 진입차수 2개 이상일 때, 진입 정점들이 visited가 아니면 false
 		for (int i = 1; i <= V; i++){   // 진출차수 0, 방문한 적 없는 정점
-			if (u != v && task[i][v] == 1 && visited[i] == 0) {
+			if (u != i && task[i][v] == 1 && visited[i] == 0) {
 				return false;
-			}		
+			}
 		}
 		return true;
 	}
@@ -60,6 +60,7 @@ void visit(int i){  // 출력, visited 표시, vCnt 카운트 증가
 	cout << i << " ";
 	visited[i] = 1;
 	task[0][i]--;
+	task[i][0]--;
 	vCnt++;
 }
 
@@ -70,7 +71,7 @@ int main(int argc, char** argv)
 
 	freopen("Day10_1sample_input.txt", "r", stdin);
 	//T = 10;
-	T = 2;
+	T = 5;
 	for (test_case = 1; test_case <= T; ++test_case)
 	{
 		cin >> V >> E;
@@ -88,50 +89,48 @@ int main(int argc, char** argv)
 			task[s][t] = 1;
 			task[s][t] = 1;
 			task[0][t]++; // 진출차수 count 증가
-			task[s][0]++;
+			task[s][0]++; // 진입차수 count 증가
 		}
 		dump();
 
 		cout << "#" << test_case << " ";
 		vCnt = 0;
+		int Q[10001] = { 0, };
 
-		while (vCnt < V){  // V개 출력할 때까지
+		int front = -1, rear = -1;
 
-			for (int i = 1; i <= V; i++){   // 진출차수 0, 방문한 적 없는 정점
-				if (vCnt == V) break;
-
-				if (task[0][i] == 0 && visited[i] == 0) {
-					visit(i);  // 출력, visited 표시, vCnt 카운트 증가
-
-					// i로부터 따라감  진입차수 검색
-					// 연결된 task가 없을 때, 다른 task와 종속관계일 때
-					int u = i;
-					bool going = true;
-					while (going){
-						if (vCnt == V) break;
-						if (task[u][0] == 0) break; // 연결된 task가 없을 때
-
-						//	while (going){
-						for (int j = 1; j <= V; j++){ // 다음 task 검색 - 진출행
-							if (u != j && task[u][j] == 1 && visited[j] != 1){
-								if (valid(u, j)){ // 다른 task와 종속관계 여부와 가도 되는지 체크									
-									visit(j);
-									u = j; // j에서 따라 들어감
-									break;
-								}
-							}
-							if (j == V) going = false;
+		for (int i = 1; i <= V; i++){   // 진출차수 0, 방문한 적 없는 정점
+			if (task[0][i] == 0 && visited[i] == 0) {
+				if (task[i][0] != 0) {
+					for (int j = 1; j <= V; j++){   // 진출차수 0, 방문한 적 없는 정점
+						if (task[i][j] == 1 && visited[j] == 0){
+							rear++;
+							Q[rear] = j;
 						}
 					}
-					//task[0][i]--;
 				}
-				//else if (visited[i] == 0) visit(i);
-				
+				visit(i);  // 출력, visited 표시, vCnt 카운트 증가
+			}
+		}
+		
+		while (front != rear){
+			front++;
+			int u = Q[front];
+			if (visited[u] == 0) {
+				if (task[u][0] != 0) {
+					for (int i = 1; i <= V; i++){   // 진출차수 0, 방문한 적 없는 정점
+						if (task[u][i] == 1 && visited[i] == 0 && valid(u,i)==true){
+							rear++;
+							Q[rear] = i;
+						}
+					}
+				}
+				visit(u);
 			}
 		}
 
 		cout << endl;
 	}
-		return 0;//정상종료시 반드시 0을 리턴해야합니다.
-	
+	return 0;//정상종료시 반드시 0을 리턴해야합니다.
+
 }
